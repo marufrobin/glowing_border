@@ -7,10 +7,24 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(title: 'GLowing Border', home: const CardDemoScreen());
+    return MaterialApp(
+      title: 'Glowing Border',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        useMaterial3: true,
+        brightness: Brightness.dark,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF6B7FE3),
+          brightness: Brightness.dark,
+          primary: const Color(0xFF00F5FF),
+          tertiary: const Color(0xFFFF00AA),
+          surface: const Color(0xFF0E0E1A),
+        ),
+      ),
+      home: const CardDemoScreen(),
+    );
   }
 }
 
@@ -39,11 +53,6 @@ class CardDemoScreen extends StatelessWidget {
             GlowingBorderCard(
               borderRadius: 20,
               runCount: 2,
-              glowColor1: const Color(0xFF00F5FF), // cyan from bottom-right
-              glowColor2: const Color(0xFFFF00AA), // magenta from top-left
-              backgroundColor: const Color(0xFF0E0E1A),
-              borderWidth: 2,
-              glowSpread: 0.2,
               child: Padding(
                 padding: const EdgeInsets.all(28),
                 child: Column(
@@ -200,9 +209,9 @@ class GlowingBorderCard extends StatefulWidget {
   final double? width;
   final double? height;
   final double borderRadius;
-  final Color glowColor1; // Travels from bottom-right → clockwise
-  final Color glowColor2; // Travels from top-left → clockwise (opposite start)
-  final Color backgroundColor;
+  final Color? glowColor1; // Travels from bottom-right → clockwise
+  final Color? glowColor2; // Travels from top-left → clockwise (opposite start)
+  final Color? backgroundColor;
   final double borderWidth;
   final double glowSpread;
   final Duration animationDuration;
@@ -214,9 +223,9 @@ class GlowingBorderCard extends StatefulWidget {
     this.width,
     this.height,
     this.borderRadius = 16,
-    this.glowColor1 = Colors.cyan,
-    this.glowColor2 = Colors.pink,
-    this.backgroundColor = const Color(0xFF0E0E1A),
+    this.glowColor1,
+    this.glowColor2,
+    this.backgroundColor,
     this.borderWidth = 2,
     this.glowSpread = 8,
     this.animationDuration = const Duration(milliseconds: 2500),
@@ -271,6 +280,11 @@ class _GlowingBorderCardState extends State<GlowingBorderCard>
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final resolvedGlow1 = widget.glowColor1 ?? theme.colorScheme.primary;
+    final resolvedGlow2 = widget.glowColor2 ?? theme.colorScheme.tertiary;
+    final resolvedBg = widget.backgroundColor ?? theme.colorScheme.surface;
+
     return TweenAnimationBuilder<double>(
       tween: Tween<double>(begin: 0.0, end: _isVisible ? 1.0 : 0.0),
       duration: const Duration(milliseconds: 500),
@@ -281,8 +295,8 @@ class _GlowingBorderCardState extends State<GlowingBorderCard>
             return CustomPaint(
               painter: GlowingBorderPainter(
                 progress: _animation.value,
-                glowColor1: widget.glowColor1,
-                glowColor2: widget.glowColor2,
+                glowColor1: resolvedGlow1,
+                glowColor2: resolvedGlow2,
                 borderRadius: widget.borderRadius,
                 borderWidth: widget.borderWidth,
                 glowSpread: widget.glowSpread,
@@ -298,7 +312,7 @@ class _GlowingBorderCardState extends State<GlowingBorderCard>
         width: widget.width,
         height: widget.height,
         decoration: BoxDecoration(
-          color: widget.backgroundColor,
+          color: resolvedBg,
           borderRadius: BorderRadius.circular(widget.borderRadius),
         ),
         child: widget.child,

@@ -22,9 +22,9 @@ GlowingBorderCard(
   borderRadius: 20,
   // width: 340, // Optional: fixed width
   // height: 200, // Optional: fixed height
-  glowColor1: Colors.cyan,
-  glowColor2: Colors.magenta,
-  backgroundColor: Color(0xFF0E0E1A),
+  // glowColor1: Colors.cyan, // Optional: defaults to theme primary
+  // glowColor2: Colors.magenta, // Optional: defaults to theme tertiary
+  // backgroundColor: Color(0xFF0E0E1A), // Optional: defaults to theme surface
   borderWidth: 2,
   glowSpread: 0.2, // Ratio based on border width
   runCount: 2, // Optional: Number of animation cycles (null for infinite)

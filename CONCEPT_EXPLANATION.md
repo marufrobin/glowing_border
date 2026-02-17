@@ -29,11 +29,12 @@ Let's look at the implementation starting from the `GlowingBorderCard` widget.
 
 ```dart
 class GlowingBorderCard extends StatefulWidget {
-  // Now supports optional width and height!
+  // Now supports optional width, height, AND colors!
 ```
 
-- **Lines 199-223:** This is a `StatefulWidget` because it needs to manage an `AnimationController` over time. It takes configuration like colors and border width.
-- **Dynamic Sizing**: If you don't provide a `width` or `height`, the widget will automatically size itself based on its `child`, much like a standard `Container`.
+- **Lines 199-223:** This is a `StatefulWidget` because it needs to manage an `AnimationController`.
+- **Theme-Aware Colors**: If you don't provide `glowColor1`, `glowColor2`, or `backgroundColor`, the widget will automatically look up your `Theme.of(context).colorScheme` (Primary for glow 1, Tertiary for glow 2, and Surface for background).
+- **Dynamic Sizing**: If you don't provide a `width` or `height`, the widget will automatically size itself based on its `child`.
 
 ```dart
 class _GlowingBorderCardState extends State<GlowingBorderCard>
