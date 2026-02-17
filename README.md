@@ -1,5 +1,7 @@
 # Glowing Border Card
 
+![Glowing Border Demo](glowing%20card.gif)
+
 A premium, highly performant, and customizable glowing border animation for Flutter. This project demonstrates how to use `CustomPainter` and `PathMetrics` to create smooth, eye-catching "comet-style" border animations.
 
 ## ✨ Features
