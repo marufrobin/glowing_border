@@ -44,12 +44,13 @@ class _GlowingBorderCardState extends State<GlowingBorderCard>
 ```
 
 - **Line 229:** `SingleTickerProviderStateMixin` provides the "heartbeat" (vsync) for the animation, ensuring it only runs when the screen is active.
-- **Lines 233-259 (`initState` and state):**
-  - `_isVisible`: A boolean flag used to hide the border when the animation is finished.
-  - `_controller`: Manages the timing.
-  - **`runCount` logic**: If `widget.runCount` is provided, we use `_controller.repeat(count: widget.runCount)`.
-  - **Vanish on Completion**: We add a listener (`_controller.addStatusListener`) that detects when the animation reaches `AnimationStatus.completed`. When it does, we set `_isVisible = false` within a `setState` call to trigger a fade-out.
-  - `_animation`: Maps progress (0.0 to 1.0).
+- **Lines 233-270 (`initState` and state):**
+  - `_isVisible`: Tracks if the border should be shown (handles fade-out at the end).
+  - `_isStarted`: Tracks if the `startDelay` has passed (handles fade-in at the beginning).
+  - `_controller`: Manages the animation timing.
+  - **`startDelay` logic**: If a delay is provided, we wait for that duration using `Future.delayed`. Once finished, we set `_isStarted = true` and begin the animation loops.
+  - **`runCount` logic**: Controls how many cycles the animation runs.
+  - **Vanish on Completion**: Detections completion to trigger fade-out using `_isVisible`.
 
 ```dart
 @override

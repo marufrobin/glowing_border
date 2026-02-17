@@ -53,6 +53,7 @@ class CardDemoScreen extends StatelessWidget {
             GlowingBorderCard(
               borderRadius: 20,
               runCount: 2,
+              startDelay: Duration(seconds: 10),
               child: Padding(
                 padding: const EdgeInsets.all(28),
                 child: Column(
@@ -215,6 +216,7 @@ class GlowingBorderCard extends StatefulWidget {
   final double borderWidth;
   final double glowSpread;
   final Duration animationDuration;
+  final Duration? startDelay;
   final int? runCount;
   final Widget? child;
 
@@ -229,6 +231,7 @@ class GlowingBorderCard extends StatefulWidget {
     this.borderWidth = 2,
     this.glowSpread = 8,
     this.animationDuration = const Duration(milliseconds: 2500),
+    this.startDelay,
     this.runCount,
     this.child,
   });
@@ -242,6 +245,7 @@ class _GlowingBorderCardState extends State<GlowingBorderCard>
   late AnimationController _controller;
   late Animation<double> _animation;
   bool _isVisible = true;
+  bool _isStarted = false;
 
   @override
   void initState() {
@@ -250,6 +254,25 @@ class _GlowingBorderCardState extends State<GlowingBorderCard>
       vsync: this,
       duration: widget.animationDuration,
     );
+
+    _animation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.linear));
+
+    _initAnimation();
+  }
+
+  Future<void> _initAnimation() async {
+    if (widget.startDelay != null) {
+      await Future.delayed(widget.startDelay!);
+    }
+
+    if (!mounted) return;
+
+    setState(() {
+      _isStarted = true;
+    });
 
     if (widget.runCount != null) {
       _controller.repeat(count: widget.runCount);
@@ -265,11 +288,6 @@ class _GlowingBorderCardState extends State<GlowingBorderCard>
     } else {
       _controller.repeat();
     }
-
-    _animation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.linear));
   }
 
   @override
@@ -286,7 +304,10 @@ class _GlowingBorderCardState extends State<GlowingBorderCard>
     final resolvedBg = widget.backgroundColor ?? theme.colorScheme.surface;
 
     return TweenAnimationBuilder<double>(
-      tween: Tween<double>(begin: 0.0, end: _isVisible ? 1.0 : 0.0),
+      tween: Tween<double>(
+        begin: 0.0,
+        end: (_isStarted && _isVisible) ? 1.0 : 0.0,
+      ),
       duration: const Duration(milliseconds: 500),
       builder: (context, glowOpacity, child) {
         return AnimatedBuilder(

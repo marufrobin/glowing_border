@@ -27,7 +27,8 @@ GlowingBorderCard(
   // backgroundColor: Color(0xFF0E0E1A), // Optional: defaults to theme surface
   borderWidth: 2,
   glowSpread: 0.2, // Ratio based on border width
-  runCount: 2, // Optional: Number of animation cycles (null for infinite)
+  runCount: 2, // Optional: number of cycles (null for infinite)
+  startDelay: Duration(seconds: 1), // Optional: delay before starting
   child: YourWidget(),
 )
 ```
