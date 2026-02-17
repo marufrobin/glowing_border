@@ -1,16 +1,41 @@
-# glowing_border
+# Glowing Border Card
 
-A new Flutter project.
+A premium, highly performant, and customizable glowing border animation for Flutter. This project demonstrates how to use `CustomPainter` and `PathMetrics` to create smooth, eye-catching "comet-style" border animations.
 
-## Getting Started
+## ✨ Features
 
-This project is a starting point for a Flutter application.
+- **Smooth Animation**: Uses `PathMetrics` for high-performance perimeter tracing.
+- **Customizable**: Control colors, border width, glow intensity, and rotation speed.
+- **Dual Orbs**: Two independent glowing orbs that travel around the border simultaneously.
+- **Neon Glow**: Multi-layered blur effects for a polished, premium look.
 
-A few resources to get you started if this is your first Flutter project:
+## 🚀 Getting Started
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+If you want to use this in your project, simply copy the `GlowingBorderCard` and `GlowingBorderPainter` classes from `lib/main.dart`.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+### Usage Example
+
+```dart
+GlowingBorderCard(
+  width: 340,
+  height: 200,
+  borderRadius: 20,
+  glowColor1: Colors.cyan,
+  glowColor2: Colors.magenta,
+  backgroundColor: Color(0xFF0E0E1A),
+  borderWidth: 2,
+  glowSpread: 0.2, // Ratio based on border width
+  child: YourWidget(),
+)
+```
+
+## 🧠 How it Works
+
+For a detailed, line-by-line explanation of the code, including how `AnimatedBuilder` and `CustomPainter` work together, check out our [Concept Explanation](CONCEPT_EXPLANATION.md).
+
+## 🛠 Tech Stack
+
+- **Flutter**: UI Framework
+- **Dart**: Programming Language
+- **CustomPainter**: Low-level drawing
+- **PathMetrics**: Advanced path manipulation
