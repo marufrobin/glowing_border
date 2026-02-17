@@ -19,14 +19,15 @@ If you want to use this in your project, simply copy the `GlowingBorderCard` and
 
 ```dart
 GlowingBorderCard(
-  width: 340,
-  height: 200,
   borderRadius: 20,
+  // width: 340, // Optional: fixed width
+  // height: 200, // Optional: fixed height
   glowColor1: Colors.cyan,
   glowColor2: Colors.magenta,
   backgroundColor: Color(0xFF0E0E1A),
   borderWidth: 2,
   glowSpread: 0.2, // Ratio based on border width
+  runCount: 2, // Optional: Number of animation cycles (null for infinite)
   child: YourWidget(),
 )
 ```

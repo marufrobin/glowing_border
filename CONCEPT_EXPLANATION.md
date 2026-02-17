@@ -29,10 +29,11 @@ Let's look at the implementation starting from the `GlowingBorderCard` widget.
 
 ```dart
 class GlowingBorderCard extends StatefulWidget {
-  // ... parameters for width, height, colors, etc.
+  // Now supports optional width and height!
 ```
 
-- **Lines 199-223:** This is a `StatefulWidget` because it needs to manage an `AnimationController` over time. It takes configuration like colors, border width, and animation duration.
+- **Lines 199-223:** This is a `StatefulWidget` because it needs to manage an `AnimationController` over time. It takes configuration like colors and border width.
+- **Dynamic Sizing**: If you don't provide a `width` or `height`, the widget will automatically size itself based on its `child`, much like a standard `Container`.
 
 ```dart
 class _GlowingBorderCardState extends State<GlowingBorderCard>
@@ -42,31 +43,43 @@ class _GlowingBorderCardState extends State<GlowingBorderCard>
 ```
 
 - **Line 229:** `SingleTickerProviderStateMixin` provides the "heartbeat" (vsync) for the animation, ensuring it only runs when the screen is active.
-- **Lines 237-246 (`initState`):**
-  - `_controller`: Manages the timing. `..repeat()` makes it loop forever.
-  - `_animation`: A `Tween<double>(begin: 0.0, end: 1.0)` that maps the time into a progress value from 0 to 1. `Curves.linear` ensures the speed is constant.
+- **Lines 233-259 (`initState` and state):**
+  - `_isVisible`: A boolean flag used to hide the border when the animation is finished.
+  - `_controller`: Manages the timing.
+  - **`runCount` logic**: If `widget.runCount` is provided, we use `_controller.repeat(count: widget.runCount)`.
+  - **Vanish on Completion**: We add a listener (`_controller.addStatusListener`) that detects when the animation reaches `AnimationStatus.completed`. When it does, we set `_isVisible = false` within a `setState` call to trigger a fade-out.
+  - `_animation`: Maps progress (0.0 to 1.0).
 
 ```dart
 @override
 Widget build(BuildContext context) {
-  return AnimatedBuilder(
-    animation: _animation,
-    builder: (context, child) {
-      return CustomPaint(
-        painter: GlowingBorderPainter(
-          progress: _animation.value,
-          // ... passing other props
-        ),
+  return TweenAnimationBuilder<double>(
+    tween: Tween<double>(begin: 0.0, end: _isVisible ? 1.0 : 0.0),
+    duration: const Duration(milliseconds: 500),
+    builder: (context, glowOpacity, child) {
+      return AnimatedBuilder(
+        animation: _animation,
+        builder: (context, child) {
+          return CustomPaint(
+            painter: GlowingBorderPainter(
+              // ...
+              glowOpacity: glowOpacity,
+            ),
+            child: child,
+          );
+        },
         child: child,
       );
     },
-    child: Container( /* ... internal card content ... */ ),
+    child: Container( /* card content */ ),
   );
 }
 ```
 
-- **Line 256:** `AnimatedBuilder` listens to `_animation`.
-- **Line 260:** `CustomPaint` uses our `GlowingBorderPainter`. We pass `_animation.value` (the current progress) to it.
+- **Line 266:** `TweenAnimationBuilder` manages the `glowOpacity` value. When `_isVisible` flips to `false`, it smoothly animates `glowOpacity` from 1.0 to 0.0.
+- **GlowingBorderPainter**: Now receives `glowOpacity` and applies it only to the "comet" effects.
+- **Preservation**: Because the `Container` and the `basePaint` (static border) are outside this specific opacity multiplier, they stay visible even after the glowing orbs fade out.
+s `_animation.value` (the current progress) to it.
 - **Line 271:** The `child` of `AnimatedBuilder` (the actual card content) is passed through. This is an optimization: the card content doesn't need to rebuild every frame, only the `CustomPaint` surface does.
 
 ---

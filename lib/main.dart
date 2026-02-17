@@ -21,7 +21,8 @@ class CardDemoScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF0A0A0F),
-      body: Center(
+      body: Container(
+        padding: .all(16),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -36,9 +37,8 @@ class CardDemoScreen extends StatelessWidget {
             ),
             const SizedBox(height: 40),
             GlowingBorderCard(
-              width: 340,
-              height: 200,
               borderRadius: 20,
+              runCount: 2,
               glowColor1: const Color(0xFF00F5FF), // cyan from bottom-right
               glowColor2: const Color(0xFFFF00AA), // magenta from top-left
               backgroundColor: const Color(0xFF0E0E1A),
@@ -197,8 +197,8 @@ class CardDemoScreen extends StatelessWidget {
 /// A card widget with two glowing border orbs that start at opposite corners
 /// (top-left and bottom-right) and travel around the entire border simultaneously.
 class GlowingBorderCard extends StatefulWidget {
-  final double width;
-  final double height;
+  final double? width;
+  final double? height;
   final double borderRadius;
   final Color glowColor1; // Travels from bottom-right → clockwise
   final Color glowColor2; // Travels from top-left → clockwise (opposite start)
@@ -206,12 +206,13 @@ class GlowingBorderCard extends StatefulWidget {
   final double borderWidth;
   final double glowSpread;
   final Duration animationDuration;
+  final int? runCount;
   final Widget? child;
 
   const GlowingBorderCard({
     super.key,
-    required this.width,
-    required this.height,
+    this.width,
+    this.height,
     this.borderRadius = 16,
     this.glowColor1 = Colors.cyan,
     this.glowColor2 = Colors.pink,
@@ -219,6 +220,7 @@ class GlowingBorderCard extends StatefulWidget {
     this.borderWidth = 2,
     this.glowSpread = 8,
     this.animationDuration = const Duration(milliseconds: 2500),
+    this.runCount,
     this.child,
   });
 
@@ -230,6 +232,7 @@ class _GlowingBorderCardState extends State<GlowingBorderCard>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _animation;
+  bool _isVisible = true;
 
   @override
   void initState() {
@@ -237,7 +240,22 @@ class _GlowingBorderCardState extends State<GlowingBorderCard>
     _controller = AnimationController(
       vsync: this,
       duration: widget.animationDuration,
-    )..repeat();
+    );
+
+    if (widget.runCount != null) {
+      _controller.repeat(count: widget.runCount);
+      _controller.addStatusListener((status) {
+        if (status == AnimationStatus.completed) {
+          if (mounted) {
+            setState(() {
+              _isVisible = false;
+            });
+          }
+        }
+      });
+    } else {
+      _controller.repeat();
+    }
 
     _animation = Tween<double>(
       begin: 0.0,
@@ -253,18 +271,26 @@ class _GlowingBorderCardState extends State<GlowingBorderCard>
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _animation,
-      builder: (context, child) {
-        return CustomPaint(
-          painter: GlowingBorderPainter(
-            progress: _animation.value,
-            glowColor1: widget.glowColor1,
-            glowColor2: widget.glowColor2,
-            borderRadius: widget.borderRadius,
-            borderWidth: widget.borderWidth,
-            glowSpread: widget.glowSpread,
-          ),
+    return TweenAnimationBuilder<double>(
+      tween: Tween<double>(begin: 0.0, end: _isVisible ? 1.0 : 0.0),
+      duration: const Duration(milliseconds: 500),
+      builder: (context, glowOpacity, child) {
+        return AnimatedBuilder(
+          animation: _animation,
+          builder: (context, child) {
+            return CustomPaint(
+              painter: GlowingBorderPainter(
+                progress: _animation.value,
+                glowColor1: widget.glowColor1,
+                glowColor2: widget.glowColor2,
+                borderRadius: widget.borderRadius,
+                borderWidth: widget.borderWidth,
+                glowSpread: widget.glowSpread,
+                glowOpacity: glowOpacity,
+              ),
+              child: child,
+            );
+          },
           child: child,
         );
       },
@@ -288,6 +314,7 @@ class GlowingBorderPainter extends CustomPainter {
   final double borderRadius;
   final double borderWidth;
   final double glowSpread;
+  final double glowOpacity;
 
   GlowingBorderPainter({
     required this.progress,
@@ -296,6 +323,7 @@ class GlowingBorderPainter extends CustomPainter {
     required this.borderRadius,
     required this.borderWidth,
     required this.glowSpread,
+    required this.glowOpacity,
   });
 
   @override
@@ -314,6 +342,9 @@ class GlowingBorderPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = borderWidth;
     canvas.drawRRect(rrect, basePaint);
+
+    // If glow is fully invisible, skip drawing orbs and trails
+    if (glowOpacity <= 0) return;
 
     // ── 2. Draw each orb with its glow trail ─────────────────────────────────
     void drawOrb(double t, Color color) {
@@ -346,21 +377,21 @@ class GlowingBorderPainter extends CustomPainter {
         ..strokeWidth = glowSpread * 2.5
         ..strokeCap = StrokeCap.round
         ..maskFilter = MaskFilter.blur(BlurStyle.normal, glowSpread * 1.2)
-        ..color = color.withValues(alpha: 0.15);
+        ..color = color.withValues(alpha: 0.15 * glowOpacity);
       canvas.drawPath(trailPath, glowPaint);
 
       // Middle vibrant glow
       glowPaint
         ..strokeWidth = glowSpread * 1.2
         ..maskFilter = MaskFilter.blur(BlurStyle.normal, glowSpread * 0.5)
-        ..color = color.withValues(alpha: 0.4);
+        ..color = color.withValues(alpha: 0.4 * glowOpacity);
       canvas.drawPath(trailPath, glowPaint);
 
       // Core leading line
       glowPaint
         ..strokeWidth = borderWidth * 1.5
         ..maskFilter = null
-        ..color = color;
+        ..color = color.withValues(alpha: glowOpacity);
       canvas.drawPath(trailPath, glowPaint);
 
       // ── Orb Head ───────────────────────────────────────────────────────────
@@ -370,13 +401,13 @@ class GlowingBorderPainter extends CustomPainter {
 
         // Soft head glow
         final Paint headPaint = Paint()
-          ..color = color.withValues(alpha: 0.6)
+          ..color = color.withValues(alpha: 0.6 * glowOpacity)
           ..maskFilter = MaskFilter.blur(BlurStyle.normal, glowSpread * 0.8);
         canvas.drawCircle(pos, glowSpread, headPaint);
 
         // White core
         headPaint
-          ..color = Colors.white
+          ..color = Colors.white.withValues(alpha: glowOpacity)
           ..maskFilter = MaskFilter.blur(BlurStyle.normal, 2);
         canvas.drawCircle(pos, borderWidth * 1.5, headPaint);
 
@@ -384,7 +415,7 @@ class GlowingBorderPainter extends CustomPainter {
         canvas.drawCircle(
           pos,
           borderWidth * 0.8,
-          Paint()..color = Colors.white,
+          Paint()..color = Colors.white.withValues(alpha: glowOpacity),
         );
       }
     }
